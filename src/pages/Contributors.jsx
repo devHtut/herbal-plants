@@ -143,8 +143,8 @@ export default function Contributors() {
 
       <footer className="mt-auto p-10 text-center">
         <p className="text-[13px] text-gray-400 leading-relaxed">
-          ဤပရောဂျက်သည် data-team၏ ဝီရိယစိုက်ထုတ်ကူညီမှု <br />
-          များကြောင့် အောင်မြင်စွာ ဆောင်ရွက်နိုင်ခြင်း ဖြစ်သည်။
+          ဤပရောဂျက်သည် data-team၏ ဝီရိယစိုက်ထုတ်ကူညီ <br />
+          မှုများကြောင့် အောင်မြင်စွာ ဆောင်ရွက်နိုင်ခြင်း ဖြစ်သည်။
         </p>
         <p className="mt-2 text-[13px] text-gray-400 leading-relaxed">
           This project is made possible by the <br />

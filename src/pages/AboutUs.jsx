@@ -114,7 +114,7 @@ export default function About() {
                   <FiMail size={14} /> Email
                 </a>
                 <a 
-                  href="tel:+959123456789"
+                  href="tel:+959772364896"
                   className="flex items-center gap-1.5 bg-[#F2F2F7] px-3 py-1.5 rounded-full text-[#34C759] text-[13px] font-medium active:opacity-50 transition-opacity"
                 >
                   <FiPhone size={14} /> Call

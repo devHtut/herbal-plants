@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   HashRouter as Router,
   Routes,
@@ -27,10 +27,10 @@ import ContributorProfile from "./pages/ContributorProfile";
 import MyContributions from "./pages/MyContributions";
 import EditPlantInfo from "./pages/EditPlantInfo";
 
-import { IoMenu, IoSearch, IoCreate } from "react-icons/io5";
+import { IoMenu, IoSearch, IoCreate, IoRefresh } from "react-icons/io5";
 import ContributorSettings from "./pages/ContributorSetting";
 
-function AppContent({ plants, loading, menuOpen, setMenuOpen, user }) {
+function AppContent({ plants, loading, menuOpen, setMenuOpen, user, onRefresh }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [isContributor, setIsContributor] = useState(false);
@@ -70,6 +70,7 @@ function AppContent({ plants, loading, menuOpen, setMenuOpen, user }) {
             setMenuOpen={setMenuOpen}
             user={user}
             isContributor={isContributor}
+            onRefresh={onRefresh}
           />
         }
       />
@@ -126,12 +127,31 @@ export default function App() {
     };
     checkInitialUser();
 
+    // Auth Subscription
     const {
-      data: { subscription },
+      data: { subscription: authSubscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
     });
-    return () => subscription.unsubscribe();
+
+    // REALTIME SUBSCRIPTION FOR AUTO REFRESH
+    // This listens for INSERT, UPDATE, or DELETE on the 'plants' table
+    const plantSubscription = supabase
+      .channel('public:plants')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'plants' },
+        (payload) => {
+          console.log('Realtime update received:', payload);
+          fetchPlants(); // Auto-refresh when data changes
+        }
+      )
+      .subscribe();
+
+    return () => {
+      authSubscription.unsubscribe();
+      supabase.removeChannel(plantSubscription);
+    };
   }, []);
 
   async function fetchPlants() {
@@ -151,6 +171,7 @@ export default function App() {
         menuOpen={menuOpen}
         setMenuOpen={setMenuOpen}
         user={user}
+        onRefresh={fetchPlants}
       />
       <SideMenu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
     </Router>
@@ -164,9 +185,16 @@ function HomeScreen({
   setMenuOpen,
   user,
   isContributor,
+  onRefresh,
 }) {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
+  
+  // Pull to refresh states
+  const [pullY, setPullY] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
+  const scrollContainerRef = useRef(null);
+  const startY = useRef(0);
 
   const filteredPlants = plants.filter(
     (p) =>
@@ -174,6 +202,48 @@ function HomeScreen({
       p.english_name?.toLowerCase().includes(search.toLowerCase()) ||
       p.scientific_name?.toLowerCase().includes(search.toLowerCase()),
   );
+
+  // --- Pull to Refresh Logic ---
+  const handleTouchStart = (e) => {
+    // Only enable pull if we are at the top of the list
+    if (scrollContainerRef.current && scrollContainerRef.current.scrollTop === 0) {
+      startY.current = e.touches[0].clientY;
+    }
+  };
+
+  const handleTouchMove = (e) => {
+    if (scrollContainerRef.current && scrollContainerRef.current.scrollTop === 0) {
+      const currentY = e.touches[0].clientY;
+      const diff = currentY - startY.current;
+      
+      // If pulling down (diff > 0)
+      if (diff > 0 && !refreshing) {
+        // Logarithmic resistance for a natural feel
+        const resistance = diff * 0.5; 
+        // Cap the pull distance visually
+        setPullY(Math.min(resistance, 120)); 
+      }
+    }
+  };
+
+  const handleTouchEnd = async () => {
+    if (pullY > 60) { // Threshold to trigger refresh
+      setRefreshing(true);
+      setPullY(60); // Snap to loading position
+      try {
+        await onRefresh(); // Call the refresh function passed from App
+      } catch (error) {
+        console.error("Refresh failed", error);
+      } finally {
+        setTimeout(() => {
+          setRefreshing(false);
+          setPullY(0);
+        }, 500); // Small delay for UX
+      }
+    } else {
+      setPullY(0); // Snap back if not pulled enough
+    }
+  };
 
   return (
     <div className="relative h-screen bg-[#F2F2F7] flex flex-col font-sans">
@@ -206,25 +276,56 @@ function HomeScreen({
         </div>
       </div>
 
-      <div className="px-4 pt-4 flex-1 overflow-y-auto">
-        {loading ? (
-          <div className="h-screen bg-[#F2F2F7] flex items-center justify-center">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#007AFF] mx-auto mb-4"></div>
-              <p className="text-gray-500 font-medium">Loading...</p>
+      {/* Main Content Area with Pull-to-Refresh */}
+      <div 
+        ref={scrollContainerRef}
+        className="px-4 pt-4 flex-1 overflow-y-auto relative"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        {/* Pull to Refresh Indicator */}
+        <div 
+          className="absolute top-0 left-0 w-full flex justify-center items-center pointer-events-none transition-transform duration-200"
+          style={{ 
+            height: '60px', 
+            marginTop: '-60px',
+            transform: `translateY(${pullY}px)`,
+            opacity: pullY > 0 ? 1 : 0
+          }}
+        >
+          {refreshing ? (
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#007AFF]"></div>
+          ) : (
+            <div className={`text-[#007AFF] transition-transform duration-200 ${pullY > 60 ? 'rotate-180' : ''}`}>
+              <IoRefresh size={24} />
             </div>
-          </div>
-        ) : (
-          <div className="pb-24">
-            {filteredPlants.length > 0 ? (
-              filteredPlants.map((plant) => (
-                <PlantCard key={plant.id} plant={plant} user={user} />
-              ))
-            ) : (
-              <p className="text-center text-gray-500 mt-10">No plants found</p>
-            )}
-          </div>
-        )}
+          )}
+        </div>
+
+        {/* List Content */}
+        <div 
+          style={{ transform: `translateY(${pullY}px)`, transition: refreshing ? 'transform 0.2s' : 'none' }}
+        >
+          {loading ? (
+            <div className="h-[60vh] flex items-center justify-center">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#007AFF] mx-auto mb-4"></div>
+                <p className="text-gray-500 font-medium">Loading...</p>
+              </div>
+            </div>
+          ) : (
+            <div className="pb-24">
+              {filteredPlants.length > 0 ? (
+                filteredPlants.map((plant) => (
+                  <PlantCard key={plant.id} plant={plant} user={user} />
+                ))
+              ) : (
+                <p className="text-center text-gray-500 mt-10">No plants found</p>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Floating Post Button - Contributor Only */}
