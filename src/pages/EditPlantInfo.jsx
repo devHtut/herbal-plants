@@ -16,6 +16,7 @@ export default function EditPlantInfo() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [progress, setProgress] = useState(0); // Track upload progress
   const [status, setStatus] = useState({ type: null, message: "" });
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
 
@@ -40,6 +41,18 @@ export default function EditPlantInfo() {
     fetchPlantData();
   }, [id]);
 
+  // Prevent accidental tab closure while saving
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (saving) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [saving]);
+
   async function fetchPlantData() {
     const { data, error } = await supabase
       .from("plants")
@@ -62,7 +75,6 @@ export default function EditPlantInfo() {
     setLoading(false);
   }
 
-  // --- Utility for URL Extraction ---
   const extractPath = (urlStr) => {
     try {
       const url = new URL(urlStr);
@@ -123,11 +135,13 @@ export default function EditPlantInfo() {
       return;
     }
     setSaving(true);
+    setProgress(10); 
     const compressed = await Promise.all(
       files.map((file) => compressImage(file)),
     );
     setNewPhotos([...newPhotos, ...compressed]);
     setSaving(false);
+    setProgress(0);
   };
 
   const showStatus = (type, message) => {
@@ -142,8 +156,10 @@ export default function EditPlantInfo() {
   const handleUpdate = async (e) => {
     if (e) e.preventDefault();
     setSaving(true);
+    setProgress(5);
+
     try {
-      // 1. Delete removed photos from storage & DB
+      // 1. Delete removed photos
       if (removedPhotos.length > 0) {
         const { data: toDelete } = await supabase
           .from("plant_photos")
@@ -158,43 +174,50 @@ export default function EditPlantInfo() {
         }
         await supabase.from("plant_photos").delete().in("id", removedPhotos);
       }
+      setProgress(20);
 
-      // 2. Upload new photos
-      for (const file of newPhotos) {
+      // 2. Upload new photos (Incrementally update progress)
+      for (let i = 0; i < newPhotos.length; i++) {
+        const file = newPhotos[i];
         const fileName = `${id}-${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
         const { error: upErr } = await supabase.storage
           .from("plant-images")
           .upload(fileName, file);
         if (upErr) throw upErr;
-        const {
-          data: { publicUrl },
-        } = supabase.storage.from("plant-images").getPublicUrl(fileName);
+
+        const { data: { publicUrl } } = supabase.storage.from("plant-images").getPublicUrl(fileName);
         await supabase
           .from("plant_photos")
           .insert({ plant_id: id, image_url: publicUrl });
+
+        // Distribute 60% of the bar across all uploads
+        const uploadChunk = 60 / newPhotos.length;
+        setProgress(20 + Math.round(uploadChunk * (i + 1)));
       }
 
       // 3. Update Text Data
+      setProgress(90);
       const { error: updateError } = await supabase
         .from("plants")
         .update(formData)
         .eq("id", id);
       if (updateError) throw updateError;
 
+      setProgress(100);
       showStatus("success", "ပြင်ဆင်မှု အောင်မြင်ပါသည်");
     } catch (err) {
       showStatus("error", err.message);
     } finally {
       setSaving(false);
+      setTimeout(() => setProgress(0), 500);
     }
   };
 
-  // --- FIXED DELETE LOGIC ---
   const handleDeletePlant = async () => {
     setSaving(true);
+    setProgress(30);
     setShowConfirmDelete(false);
     try {
-      // 1. Clean up ALL photos from Storage first
       if (existingPhotos.length > 0) {
         const allPaths = existingPhotos
           .map((p) => extractPath(p.image_url))
@@ -203,16 +226,16 @@ export default function EditPlantInfo() {
           await supabase.storage.from("plant-images").remove(allPaths);
         }
       }
-
-      // 2. Delete the plant record
-      // Ensure "ON DELETE CASCADE" is set in your DB for saved_plants and plant_photos
+      setProgress(70);
       const { error } = await supabase.from("plants").delete().eq("id", id);
       if (error) throw error;
 
+      setProgress(100);
       showStatus("success", "အောင်မြင်စွာ ဖျက်လိုက်ပါပြီ");
     } catch (err) {
       showStatus("error", "Error: " + err.message);
       setSaving(false);
+      setProgress(0);
     }
   };
 
@@ -225,6 +248,34 @@ export default function EditPlantInfo() {
 
   return (
     <div className="h-screen bg-[#F2F2F7] flex flex-col font-sans relative overflow-hidden">
+      
+      {/* PROGRESS OVERLAY - Restricts user interaction during save */}
+      {saving && (
+        <div className="fixed inset-0 z-[150] bg-white/90 backdrop-blur-md flex flex-col items-center justify-center p-8">
+          <div className="w-full max-w-[280px] space-y-6 text-center">
+            <div className="relative w-20 h-20 mx-auto">
+              <div className="absolute inset-0 border-4 border-gray-100 rounded-full"></div>
+              <div className="absolute inset-0 border-4 border-[#007AFF] rounded-full border-t-transparent animate-spin"></div>
+            </div>
+            
+            <div className="space-y-1">
+              <h3 className="text-xl font-bold text-black">Saving Content</h3>
+              <p className="text-gray-500 text-[15px]">သိမ်းဆည်းနေပါသည် ခေတ္တစောင့်ပေးပါ</p>
+            </div>
+
+            <div className="space-y-2">
+              <div className="w-full bg-gray-100 h-2.5 rounded-full overflow-hidden">
+                <div 
+                  className="bg-[#007AFF] h-full transition-all duration-300 ease-out"
+                  style={{ width: `${progress}%` }}
+                ></div>
+              </div>
+              <span className="text-[14px] font-bold text-[#007AFF]">{progress}%</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* STATUS POP-UP */}
       {status.type && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/20 backdrop-blur-sm">
@@ -276,6 +327,7 @@ export default function EditPlantInfo() {
         <button
           onClick={() => navigate(-1)}
           className="p-1 -ml-1 text-[#007AFF]"
+          disabled={saving}
         >
           <FiArrowLeft size={24} />
         </button>
@@ -350,6 +402,7 @@ export default function EditPlantInfo() {
                   accept="image/*"
                   className="hidden"
                   onChange={handlePhotoSelect}
+                  disabled={saving}
                 />
               </label>
             )}
@@ -398,19 +451,19 @@ export default function EditPlantInfo() {
           />
         </div>
 
-        {/* Restored Save and Delete Buttons */}
         <div className="pt-4 space-y-3">
-          {/* <button 
+          <button 
             onClick={handleUpdate} 
             disabled={saving} 
             className="w-full bg-[#007AFF] text-white font-bold py-4 rounded-[20px] shadow-lg shadow-blue-100 active:scale-[0.98] transition-transform disabled:opacity-50"
           >
             {saving ? "Saving..." : "Save Changes"}
-          </button> */}
+          </button>
 
           <button
             onClick={() => setShowConfirmDelete(true)}
-            className="w-full bg-white text-red-600 text-[20px] font-semibold py-4 rounded-[14px] active:bg-gray-200 transition-colors duration-200 flex items-center justify-center gap-2"
+            disabled={saving}
+            className="w-full bg-white text-red-600 text-[20px] font-semibold py-4 rounded-[14px] active:bg-gray-200 transition-colors duration-200 flex items-center justify-center gap-2 disabled:opacity-50"
           >
             <IoTrashOutline size={24} />
             <span>Delete Contribution</span>

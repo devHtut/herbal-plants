@@ -12,6 +12,7 @@ import {
 export default function AddPlantInfo() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState(0); // Track upload progress
   const [user, setUser] = useState(null);
 
   // Status Pop-up States
@@ -42,6 +43,18 @@ export default function AddPlantInfo() {
     checkUser();
   }, [navigate]);
 
+  // Prevent accidental tab closure while saving
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (loading) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [loading]);
+
   const showPopup = (type, message) => {
     setStatus({ show: true, type, message });
     if (type === "success") {
@@ -62,39 +75,22 @@ export default function AddPlantInfo() {
           const canvas = document.createElement("canvas");
           let width = img.width;
           let height = img.height;
-
-          // 1. Lower the resolution.
-          // 1000px is more than enough for a mobile app screen.
           const MAX_WIDTH = 1000;
           if (width > MAX_WIDTH) {
             height *= MAX_WIDTH / width;
             width = MAX_WIDTH;
           }
-
           canvas.width = width;
           canvas.height = height;
           const ctx = canvas.getContext("2d");
           ctx.drawImage(img, 0, 0, width, height);
-
-          // 2. The recursive loop to ensure size < 400KB
-          const minSize = 400 * 1024; // 400KB in bytes
-
+          const minSize = 400 * 1024;
           const attemptCompression = (q) => {
             canvas.toBlob(
               (blob) => {
-                // If the file is small enough OR quality has dropped too low (0.2)
                 if (blob.size <= minSize || q <= 0.2) {
-                  // Create a clean file object
-                  // Note: We don't worry about the name here, we randomize it on upload
-                  resolve(
-                    new File(
-                      [blob],
-                      "upload.jpg", 
-                      { type: "image/jpeg" },
-                    ),
-                  );
+                  resolve(new File([blob], "upload.jpg", { type: "image/jpeg" }));
                 } else {
-                  // Reduce quality by 0.1 and try again
                   attemptCompression(q - 0.1);
                 }
               },
@@ -102,8 +98,7 @@ export default function AddPlantInfo() {
               q,
             );
           };
-
-          attemptCompression(0.7); // Initial start at 70% quality
+          attemptCompression(0.7);
         };
       };
     });
@@ -116,6 +111,7 @@ export default function AddPlantInfo() {
       return;
     }
     setLoading(true);
+    setProgress(10);
     const compressedFiles = await Promise.all(
       files.map((file) => compressImage(file)),
     );
@@ -125,6 +121,7 @@ export default function AddPlantInfo() {
       ...compressedFiles.map((file) => URL.createObjectURL(file)),
     ]);
     setLoading(false);
+    setProgress(0);
   };
 
   const removeImage = (index) => {
@@ -135,7 +132,6 @@ export default function AddPlantInfo() {
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
 
-    // Check if all text fields are filled
     const isFormIncomplete = Object.values(formData).some(
       (value) => value.trim() === "",
     );
@@ -144,15 +140,16 @@ export default function AddPlantInfo() {
       return;
     }
 
-    // Check if at least one photo is uploaded
     if (imageFiles.length === 0) {
       showPopup("error", "အနည်းဆုံး ဓာတ်ပုံတစ်ပုံ တင်ပေးပါ");
       return;
     }
 
     setLoading(true);
+    setProgress(5);
 
     try {
+      // 1. Insert Plant Text Data
       const { data: plantData, error: plantError } = await supabase
         .from("plants")
         .insert([{ ...formData, contributor_id: user.id }])
@@ -160,29 +157,31 @@ export default function AddPlantInfo() {
         .single();
 
       if (plantError) throw plantError;
+      setProgress(25);
 
-      const photoInserts = await Promise.all(
-        imageFiles.map(async (file) => {
-          // FIX: Generate a clean, random filename. 
-          // Avoids issues with Myanmar characters or spaces in original filename.
-          const fileExt = "jpg";
-          const randomName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-          const filePath = `${user.id}/${randomName}`;
+      // 2. Upload Images sequentially to track progress
+      const photoInserts = [];
+      for (let i = 0; i < imageFiles.length; i++) {
+        const file = imageFiles[i];
+        const fileExt = "jpg";
+        const randomName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const filePath = `${user.id}/${randomName}`;
 
-          const { error: uploadError } = await supabase.storage
-            .from("plant-images")
-            .upload(filePath, file);
+        const { error: uploadError } = await supabase.storage
+          .from("plant-images")
+          .upload(filePath, file);
 
-          if (uploadError) throw uploadError;
+        if (uploadError) throw uploadError;
 
-          const {
-            data: { publicUrl },
-          } = supabase.storage.from("plant-images").getPublicUrl(filePath);
+        const { data: { publicUrl } } = supabase.storage.from("plant-images").getPublicUrl(filePath);
+        photoInserts.push({ plant_id: plantData.id, image_url: publicUrl });
 
-          return { plant_id: plantData.id, image_url: publicUrl };
-        }),
-      );
+        // Update progress from 25% to 85%
+        const uploadStep = 60 / imageFiles.length;
+        setProgress(25 + Math.round(uploadStep * (i + 1)));
+      }
 
+      // 3. Insert Photo URLs into Database
       if (photoInserts.length > 0) {
         const { error: photoError } = await supabase
           .from("plant_photos")
@@ -190,30 +189,54 @@ export default function AddPlantInfo() {
         if (photoError) throw photoError;
       }
 
+      setProgress(100);
       showPopup("success", "အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ");
     } catch (error) {
       console.error("Upload error:", error);
       showPopup("error", error.message || "Upload Failed");
     } finally {
       setLoading(false);
+      setTimeout(() => setProgress(0), 500);
     }
   };
 
   return (
     <div className="h-screen bg-[#F2F2F7] flex flex-col font-sans relative overflow-hidden">
+      
+      {/* PROGRESS OVERLAY */}
+      {loading && progress > 0 && (
+        <div className="fixed inset-0 z-[150] bg-white/90 backdrop-blur-md flex flex-col items-center justify-center p-8">
+          <div className="w-full max-w-[280px] space-y-6 text-center">
+            <div className="relative w-20 h-20 mx-auto">
+              <div className="absolute inset-0 border-4 border-gray-100 rounded-full"></div>
+              <div className="absolute inset-0 border-4 border-[#007AFF] rounded-full border-t-transparent animate-spin"></div>
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-xl font-bold text-black">Saving Content</h3>
+              <p className="text-gray-500 text-[15px]">သိမ်းဆည်းနေပါသည် ခေတ္တစောင့်ပေးပါ</p>
+            </div>
+            <div className="space-y-2">
+              <div className="w-full bg-gray-100 h-2.5 rounded-full overflow-hidden">
+                <div 
+                  className="bg-[#007AFF] h-full transition-all duration-300 ease-out"
+                  style={{ width: `${progress}%` }}
+                ></div>
+              </div>
+              <span className="text-[14px] font-bold text-[#007AFF]">{progress}%</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Dynamic Status Pop-up */}
       {status.show && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center px-6 animate-in fade-in duration-300">
           <div
             className="absolute inset-0 bg-black/20 backdrop-blur-sm"
-            onClick={() =>
-              status.type !== "success" && setStatus({ ...status, show: false })
-            }
+            onClick={() => status.type !== "success" && setStatus({ ...status, show: false })}
           />
           <div className="bg-white rounded-[30px] p-8 shadow-2xl border border-gray-100 flex flex-col items-center text-center relative max-w-xs w-full animate-in zoom-in duration-300">
-            <div
-              className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${status.type === "success" ? "bg-green-500 shadow-green-100" : "bg-red-500 shadow-red-100"} shadow-lg`}
-            >
+            <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${status.type === "success" ? "bg-green-500 shadow-green-100" : "bg-red-500 shadow-red-100"} shadow-lg`}>
               {status.type === "success" ? (
                 <FiCheckCircle className="text-white text-3xl" />
               ) : (
@@ -232,6 +255,7 @@ export default function AddPlantInfo() {
       <div className="flex items-center px-4 py-3 bg-white/80 backdrop-blur-md sticky top-0 z-20 border-b border-gray-200">
         <button
           onClick={() => navigate(-1)}
+          disabled={loading}
           className="p-1 -ml-1 text-[#007AFF] active:opacity-50"
         >
           <FiArrowLeft size={24} />
@@ -341,6 +365,17 @@ export default function AddPlantInfo() {
             value={formData.reference}
             onChange={(v) => setFormData({ ...formData, reference: v })}
           />
+        </div>
+
+        {/* BOTTOM SAVE BUTTON */}
+        <div className="pt-4">
+          <button 
+            onClick={handleSubmit} 
+            disabled={loading} 
+            className="w-full bg-[#007AFF] text-white font-bold py-4 rounded-[20px] shadow-lg shadow-blue-100 active:scale-[0.98] transition-transform disabled:opacity-50"
+          >
+            {loading ? "Saving..." : "Save Content"}
+          </button>
         </div>
       </div>
     </div>
