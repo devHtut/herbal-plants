@@ -10,37 +10,27 @@ export default function ConfirmEmail() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    /**
-     * Supabase automatically claims the email confirmation token from the URL
-     * We just wait briefly and then check for success
-     */
-    const verifyEmail = async () => {
-      try {
-        // Small delay to ensure Supabase has processed the token
-        await new Promise((resolve) => setTimeout(resolve, 800));
+  const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    if (event === "SIGNED_IN" || session) {
+      setSuccess(true);
+      setVerifying(false);
+      setTimeout(() => navigate("/login"), 2000);
+    }
+  });
 
-        const { data, error } = await supabase.auth.getSession();
+  // Fallback timeout in case the link is expired/invalid
+  const timeout = setTimeout(() => {
+    if (verifying) {
+      setVerifying(false);
+      setError("Verification timed out or link is invalid.");
+    }
+  }, 5000);
 
-        if (error) {
-          setError("Email confirmation failed. Please request a new link.");
-        } else if (data?.session) {
-          setSuccess(true);
-          // Redirect to login after short delay
-          setTimeout(() => navigate("/login"), 2000);
-        } else {
-          // In case session is not created (might happen in some configs)
-          setSuccess(true);
-          setTimeout(() => navigate("/login"), 2000);
-        }
-      } catch (err) {
-        setError("Email confirmation failed. Please request a new link.");
-      } finally {
-        setVerifying(false);
-      }
-    };
-
-    verifyEmail();
-  }, [navigate]);
+  return () => {
+    subscription.unsubscribe();
+    clearTimeout(timeout);
+  };
+}, [navigate]);
 
   if (verifying) {
     return (
