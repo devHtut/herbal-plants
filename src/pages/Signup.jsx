@@ -6,6 +6,8 @@ import {
   IoMailOutline,
   IoLockClosedOutline,
   IoShieldCheckmarkOutline,
+  IoEyeOutline,    // Show icon
+  IoEyeOffOutline, // Hide icon
 } from "react-icons/io5";
 import leafIcon from '../assets/Herbal_Icon.png';
 
@@ -14,6 +16,11 @@ export default function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  
+  // Show/Hide အတွက် state နှစ်ခု
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -27,7 +34,6 @@ export default function Signup() {
     e.preventDefault();
     setError("");
 
-    // --- Validation Logic ---
     if (!validateEmail(email)) {
       setError("Valid ဖြစ်တဲ့ email address ကိုသာထည့်ပေးပါ");
       return;
@@ -43,12 +49,10 @@ export default function Signup() {
 
     setLoading(true);
 
-    // --- SIGN UP ---
     const { data, error: signupError } = await supabase.auth.signUp({
       email: email.trim(),
       password: password,
       options: {
-        // Pointing to /verify so link-clickers and code-typers end up in the same flow
         emailRedirectTo: `${window.location.origin}/verify`,
       },
     });
@@ -62,9 +66,8 @@ export default function Signup() {
     } else if (data?.user?.identities?.length === 0) {
       setError("ဒီ email က account ရှိပြီးသားဖြစ်လို့ log in ဝင်ကြည့်ပါ");
     } else {
-      // SUCCESS: Navigate to the OTP verification page
-      // We pass the email in 'state' so VerifyOtp.jsx knows who to verify
-      navigate("/verify", { state: { email: email.trim() } });
+      localStorage.setItem("pending_email", email.trim());
+      navigate("/verify-otp", { state: { email: email.trim() } });
     }
 
     setLoading(false);
@@ -72,7 +75,6 @@ export default function Signup() {
 
   return (
     <div className="min-h-screen bg-[#F2F2F7] flex flex-col font-sans">
-      {/* Navigation Bar */}
       <div className="flex items-center px-4 py-3 bg-white/80 backdrop-blur-md sticky top-0 z-10 border-b border-gray-200">
         <button
           onClick={() => navigate(-1)}
@@ -84,7 +86,6 @@ export default function Signup() {
       </div>
 
       <div className="flex-1 flex flex-col items-center px-6 pt-8 pb-10 overflow-y-auto">
-        {/* Logo/Icon */}
         <div className="flex flex-col items-center py-6">
           <div className="w-24 h-24 bg-white rounded-[22px] shadow-sm border border-gray-100 flex items-center justify-center mb-3">
             <img
@@ -114,8 +115,8 @@ export default function Signup() {
             </div>
           )}
 
-          {/* Input Group */}
           <div className="bg-white rounded-[14px] overflow-hidden border border-gray-200 shadow-sm">
+            {/* Email Input */}
             <div className="flex items-center px-4 border-b border-gray-100">
               <IoMailOutline className="text-gray-400" size={20} />
               <input
@@ -126,25 +127,43 @@ export default function Signup() {
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
+
+            {/* Password Input */}
             <div className="flex items-center px-4 border-b border-gray-100">
               <IoLockClosedOutline className="text-gray-400" size={20} />
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="Password (min 6 chars)"
                 className="w-full py-3.5 px-3 focus:outline-none text-[17px]"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="text-gray-400 px-2"
+              >
+                {showPassword ? <IoEyeOffOutline size={20} /> : <IoEyeOutline size={20} />}
+              </button>
             </div>
+
+            {/* Confirm Password Input */}
             <div className="flex items-center px-4">
               <IoShieldCheckmarkOutline className="text-gray-400" size={20} />
               <input
-                type="password"
+                type={showConfirmPassword ? "text" : "password"}
                 placeholder="Confirm Password"
                 className="w-full py-3.5 px-3 focus:outline-none text-[17px]"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
               />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="text-gray-400 px-2"
+              >
+                {showConfirmPassword ? <IoEyeOffOutline size={20} /> : <IoEyeOutline size={20} />}
+              </button>
             </div>
           </div>
 

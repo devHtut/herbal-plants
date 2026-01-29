@@ -12,30 +12,30 @@ export default function ForgotPassword() {
   async function handleResetRequest(e) {
     e.preventDefault();
     setError("");
-
     if (!email) {
       setError("အီးမေးလ်လိပ်စာ ထည့်ပေးပါ။");
       return;
     }
 
     setLoading(true);
+    const trimmedEmail = email.trim();
 
-    // OTP ပို့ခိုင်းခြင်း (resetPasswordForEmail သည် Email Template ထဲရှိ Token ကို ပို့ပေးပါလိမ့်မည်)
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim());
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(trimmedEmail);
 
     if (resetError) {
       setError(resetError.message);
       setLoading(false);
     } else {
-      // OTP ကုဒ်ရိုက်ရမယ့် Page ကို လွှတ်လိုက်ပါ
-      // state: { email, type: 'recovery' } ဟု ပို့ပေးခြင်းဖြင့် Verify Page တွင် ခွဲခြားနိုင်ပါသည်
-      navigate("/verify-otp", { state: { email: email.trim(), type: 'recovery' } });
+      // Email ကို localStorage ထဲမှာ သိမ်းထားပါ (Refresh လုပ်ရင် မပျောက်စေရန်)
+      localStorage.setItem("pending_email", trimmedEmail);
+      
+      // OTP Page ကိုသွားပါ
+      navigate("/verify-otp", { state: { email: trimmedEmail, type: 'recovery' } });
     }
   }
 
   return (
     <div className="min-h-screen bg-[#F2F2F7] flex flex-col font-sans">
-      {/* Navigation Bar */}
       <div className="flex items-center px-4 py-3 bg-white/80 backdrop-blur-md sticky top-0 z-10 border-b border-gray-200">
         <button onClick={() => navigate(-1)} className="text-[#007AFF] flex items-center gap-1 active:opacity-50">
           <IoChevronBack size={24} />
@@ -48,11 +48,9 @@ export default function ForgotPassword() {
           <IoPaperPlaneOutline className="text-[#007AFF] text-5xl" />
         </div>
 
-        <h1 className="text-[28px] font-bold text-black tracking-tight mb-2 text-center">
-          Password ပြန်ညှိရန်
-        </h1>
+        <h1 className="text-[28px] font-bold text-black tracking-tight mb-2 text-center">Password ပြန်ညှိရန်</h1>
         <p className="text-gray-500 text-[15px] mb-8 text-center px-4 leading-relaxed">
-          သင့် Password ကို reset လုပ်နိုင်ရန် ၆ လုံးပါ အတည်ပြုကုဒ် (OTP) ပို့ပေးမည် ဖြစ်သောကြောင့် အီးမေးလ်လိပ်စာ ထည့်ပေးပါ။
+          သင့် Password ကို reset လုပ်နိုင်ရန် အတည်ပြုကုဒ် (OTP) ပို့ပေးမည် ဖြစ်သောကြောင့် အီးမေးလ်လိပ်စာ ထည့်ပေးပါ။
         </p>
 
         <form onSubmit={handleResetRequest} className="w-full max-w-sm space-y-6">
