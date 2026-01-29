@@ -14,28 +14,28 @@ export default function ForgotPassword() {
     setError("");
 
     if (!email) {
-      setError("Please enter your email address.");
+      setError("အီးမေးလ်လိပ်စာ ထည့်ပေးပါ။");
       return;
     }
 
     setLoading(true);
 
-    // redirectTo will use your GitHub URL automatically when deployed
-    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: `${window.location.origin}/#/reset-password-confirm`,
-    });
+    // OTP ပို့ခိုင်းခြင်း (resetPasswordForEmail သည် Email Template ထဲရှိ Token ကို ပို့ပေးပါလိမ့်မည်)
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim());
 
-    if (error) {
-      setError(error.message);
+    if (resetError) {
+      setError(resetError.message);
       setLoading(false);
     } else {
-      // Navigate to the waiting page
-      navigate("/check-email-reset", { state: { email: email } });
+      // OTP ကုဒ်ရိုက်ရမယ့် Page ကို လွှတ်လိုက်ပါ
+      // state: { email, type: 'recovery' } ဟု ပို့ပေးခြင်းဖြင့် Verify Page တွင် ခွဲခြားနိုင်ပါသည်
+      navigate("/verify-otp", { state: { email: email.trim(), type: 'recovery' } });
     }
   }
 
   return (
     <div className="min-h-screen bg-[#F2F2F7] flex flex-col font-sans">
+      {/* Navigation Bar */}
       <div className="flex items-center px-4 py-3 bg-white/80 backdrop-blur-md sticky top-0 z-10 border-b border-gray-200">
         <button onClick={() => navigate(-1)} className="text-[#007AFF] flex items-center gap-1 active:opacity-50">
           <IoChevronBack size={24} />
@@ -48,9 +48,11 @@ export default function ForgotPassword() {
           <IoPaperPlaneOutline className="text-[#007AFF] text-5xl" />
         </div>
 
-        <h1 className="text-[28px] font-bold text-black tracking-tight mb-2 text-center">Reset Password</h1>
+        <h1 className="text-[28px] font-bold text-black tracking-tight mb-2 text-center">
+          Password ပြန်ညှိရန်
+        </h1>
         <p className="text-gray-500 text-[15px] mb-8 text-center px-4 leading-relaxed">
-          သင်၏ password ကို reset လုပ်နိုင်ရန် link ပို့ပေးမှာဖြစ်လို့ email address ထည့်ပေးပါ
+          သင့် Password ကို reset လုပ်နိုင်ရန် ၆ လုံးပါ အတည်ပြုကုဒ် (OTP) ပို့ပေးမည် ဖြစ်သောကြောင့် အီးမေးလ်လိပ်စာ ထည့်ပေးပါ။
         </p>
 
         <form onSubmit={handleResetRequest} className="w-full max-w-sm space-y-6">
@@ -65,7 +67,7 @@ export default function ForgotPassword() {
               <IoMailOutline className="text-gray-400" size={20} />
               <input
                 type="email"
-                placeholder="Email address"
+                placeholder="အီးမေးလ်လိပ်စာ"
                 className="w-full py-3.5 px-3 focus:outline-none text-[17px]"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -80,7 +82,7 @@ export default function ForgotPassword() {
               ${loading ? 'bg-gray-300' : 'bg-[#007AFF] text-white active:scale-[0.98] active:bg-[#0062CC]'}
             `}
           >
-            {loading ? "Sending..." : "Send Reset Link"}
+            {loading ? "ပို့နေပါသည်..." : "အတည်ပြုကုဒ် ပို့မည်"}
           </button>
         </form>
       </div>

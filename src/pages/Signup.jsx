@@ -43,17 +43,17 @@ export default function Signup() {
 
     setLoading(true);
 
-    // --- SIGN UP with REDIRECT URL for local testing ---
+    // --- SIGN UP ---
     const { data, error: signupError } = await supabase.auth.signUp({
       email: email.trim(),
       password: password,
       options: {
-        emailRedirectTo: "http://localhost:5173/#/confirm-email",
+        // Pointing to /verify so link-clickers and code-typers end up in the same flow
+        emailRedirectTo: `${window.location.origin}/verify`,
       },
     });
 
     if (signupError) {
-      // Handle the "User already exists" scenario
       if (signupError.message.includes("already registered")) {
         setError("ဒီ email နဲ့ account တခုရှိပြီးသားပါ");
       } else {
@@ -62,8 +62,9 @@ export default function Signup() {
     } else if (data?.user?.identities?.length === 0) {
       setError("ဒီ email က account ရှိပြီးသားဖြစ်လို့ log in ဝင်ကြည့်ပါ");
     } else {
-      // Pass the email so the next page can show it
-      navigate("/check-email", { state: { email: email } });
+      // SUCCESS: Navigate to the OTP verification page
+      // We pass the email in 'state' so VerifyOtp.jsx knows who to verify
+      navigate("/verify", { state: { email: email.trim() } });
     }
 
     setLoading(false);

@@ -26,6 +26,8 @@ import AddPlantInfo from "./pages/AddPlantInfo";
 import ContributorProfile from "./pages/ContributorProfile";
 import MyContributions from "./pages/MyContributions";
 import EditPlantInfo from "./pages/EditPlantInfo";
+import VerifyOtp from "./pages/VerifyOtp";
+import UpdatePassword from "./pages/UpdatePassword";
 
 import { IoMenu, IoSearch, IoCreate, IoRefresh } from "react-icons/io5";
 import ContributorSettings from "./pages/ContributorSetting";
@@ -81,13 +83,13 @@ function AppContent({ plants, loading, menuOpen, setMenuOpen, user, onRefresh })
       <Route path="/contributors" element={<Contributors />} />
       <Route path="/about" element={<About />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/confirm-email" element={<ConfirmEmail />} />
+      {/* <Route path="/confirm-email" element={<ConfirmEmail />} />
       <Route path="/check-email" element={<CheckEmail />} />
       <Route
         path="/reset-password-confirm"
         element={<ResetPasswordConfirm />}
-      />
-      <Route path="/check-email-reset" element={<CheckEmailReset />} />
+      /> */}
+      {/* <Route path="/check-email-reset" element={<CheckEmailReset />} /> */}
       <Route path="/setup-profile" element={<ContributorProfile />} />
       <Route
         path="/add-plant-info"
@@ -107,6 +109,8 @@ function AppContent({ plants, loading, menuOpen, setMenuOpen, user, onRefresh })
         }
       />
       <Route path="/contributor-settings" element={<ContributorSettings />} />
+      <Route path="/verify-otp" element={<VerifyOtp />} />
+      <Route path="/update-password" element={<UpdatePassword />} />
     </Routes>
   );
 }
