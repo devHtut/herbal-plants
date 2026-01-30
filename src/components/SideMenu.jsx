@@ -157,14 +157,14 @@ export default function SideMenu({ menuOpen, setMenuOpen }) {
             /* LOGIN PROMPT */
             <div className="m-4 p-5 bg-white rounded-[20px] shadow-sm border border-gray-100 text-center">
               <p className="text-[15px] text-gray-600 mb-4">
-                Log in to connect with our community and save plants.
+                Create an account to connect with our community and save plants.
               </p>
               <button
-                onClick={() => handleNav("/login")}
+                onClick={() => handleNav("/signup")}
                 className="w-full bg-[#007AFF] text-white font-bold py-3 rounded-[12px] active:opacity-80 flex items-center justify-center gap-2"
               >
                 <IoLogInOutline size={22} />
-                Log In
+                Sign up
               </button>
             </div>
           )}

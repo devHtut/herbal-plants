@@ -97,7 +97,7 @@ export default function Signup() {
           className="text-[#007AFF] flex items-center gap-1 active:opacity-50"
         >
           <IoChevronBack size={24} />
-          <span className="text-[17px]">Login</span>
+          <span className="text-[17px]">Back</span>
         </button>
       </div>
 

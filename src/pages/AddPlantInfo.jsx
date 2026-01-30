@@ -374,7 +374,7 @@ export default function AddPlantInfo() {
             disabled={loading} 
             className="w-full bg-[#007AFF] text-white font-bold py-4 rounded-[20px] shadow-lg shadow-blue-100 active:scale-[0.98] transition-transform disabled:opacity-50"
           >
-            {loading ? "Saving..." : "Save Content"}
+            {loading ? "Saving..." : "Save Plant Info"}
           </button>
         </div>
       </div>

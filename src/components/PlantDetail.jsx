@@ -146,7 +146,7 @@ export default function PlantDetail({ plants }) {
             <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
               <IoTrashOutline className="text-red-500 text-3xl" />
             </div>
-            <h3 className="text-lg font-bold text-black">ပို့စ်ကို ဖျက်မလား?</h3>
+            <h3 className="text-lg font-bold text-black">ဤ plant data ကို ဖျက်မလား?</h3>
             <p className="text-gray-500 text-sm mt-2">သေချာပါသလား? ဤလုပ်ဆောင်ချက်ကို ပြန်ပြင်၍မရပါ။</p>
             <div className="flex flex-col gap-2 mt-6">
               <button onClick={handleDelete} className="w-full py-3.5 bg-red-500 text-white font-bold rounded-2xl active:scale-95">ဖျက်မည်</button>
@@ -196,6 +196,7 @@ export default function PlantDetail({ plants }) {
           {plant.description && <Section title="သွင်ပြင်လက္ခဏာ" content={plant.description} />}
           {plant.location && <Section title="တွေ့ရှိရသောနေရာဒေသ" content={plant.location} />}
           {plant.diseases && <Section title="ပျောက်ကင်းနိုင်‌သောရောဂါများ" content={plant.diseases} />}
+          {plant.diseases && <Section title="ကိုးကားချက်" content={plant.reference} />}
         </div>
 
         {/* Contributor */}
@@ -235,7 +236,7 @@ export default function PlantDetail({ plants }) {
             </div>
             <div className="flex border-t border-gray-300">
               <button onClick={() => setShowLoginModal(false)} className="flex-1 py-3 text-[#007AFF] border-r border-gray-300">Cancel</button>
-              <button onClick={() => navigate("/login")} className="flex-1 py-3 text-[#007AFF] font-semibold">Log In</button>
+              <button onClick={() => navigate("/signup")} className="flex-1 py-3 text-[#007AFF] font-semibold">Log In</button>
             </div>
           </div>
         </div>

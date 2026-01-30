@@ -135,7 +135,7 @@ export default function EditPlantInfo() {
       return;
     }
     setSaving(true);
-    setProgress(10); 
+    setProgress(10);
     const compressed = await Promise.all(
       files.map((file) => compressImage(file)),
     );
@@ -185,7 +185,9 @@ export default function EditPlantInfo() {
           .upload(fileName, file);
         if (upErr) throw upErr;
 
-        const { data: { publicUrl } } = supabase.storage.from("plant-images").getPublicUrl(fileName);
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from("plant-images").getPublicUrl(fileName);
         await supabase
           .from("plant_photos")
           .insert({ plant_id: id, image_url: publicUrl });
@@ -248,7 +250,6 @@ export default function EditPlantInfo() {
 
   return (
     <div className="h-screen bg-[#F2F2F7] flex flex-col font-sans relative overflow-hidden">
-      
       {/* PROGRESS OVERLAY - Restricts user interaction during save */}
       {saving && (
         <div className="fixed inset-0 z-[150] bg-white/90 backdrop-blur-md flex flex-col items-center justify-center p-8">
@@ -257,20 +258,24 @@ export default function EditPlantInfo() {
               <div className="absolute inset-0 border-4 border-gray-100 rounded-full"></div>
               <div className="absolute inset-0 border-4 border-[#007AFF] rounded-full border-t-transparent animate-spin"></div>
             </div>
-            
+
             <div className="space-y-1">
               <h3 className="text-xl font-bold text-black">Saving Content</h3>
-              <p className="text-gray-500 text-[15px]">သိမ်းဆည်းနေပါသည် ခေတ္တစောင့်ပေးပါ</p>
+              <p className="text-gray-500 text-[15px]">
+                သိမ်းဆည်းနေပါသည် ခေတ္တစောင့်ပေးပါ
+              </p>
             </div>
 
             <div className="space-y-2">
               <div className="w-full bg-gray-100 h-2.5 rounded-full overflow-hidden">
-                <div 
+                <div
                   className="bg-[#007AFF] h-full transition-all duration-300 ease-out"
                   style={{ width: `${progress}%` }}
                 ></div>
               </div>
-              <span className="text-[14px] font-bold text-[#007AFF]">{progress}%</span>
+              <span className="text-[14px] font-bold text-[#007AFF]">
+                {progress}%
+              </span>
             </div>
           </div>
         </div>
@@ -300,7 +305,9 @@ export default function EditPlantInfo() {
             <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
               <IoTrashOutline className="text-red-500 text-3xl" />
             </div>
-            <h3 className="text-lg font-bold text-black">Delete This Contribution?</h3>
+            <h3 className="text-lg font-bold text-black">
+              Delete This Contribution?
+            </h3>
             <p className="text-gray-500 text-sm mt-2">
               ဤအပင်အချက်အလက်ကို ဖျက်ရန် သေချာပါသလား?
             </p>
@@ -449,12 +456,17 @@ export default function EditPlantInfo() {
             value={formData.diseases}
             onChange={(v) => setFormData({ ...formData, diseases: v })}
           />
+          <TextAreaField
+            label="ကိုးကားချက်"
+            value={formData.reference}
+            onChange={(v) => setFormData({ ...formData, reference: v })}
+          />
         </div>
 
         <div className="pt-4 space-y-3">
-          <button 
-            onClick={handleUpdate} 
-            disabled={saving} 
+          <button
+            onClick={handleUpdate}
+            disabled={saving}
             className="w-full bg-[#007AFF] text-white font-bold py-4 rounded-[20px] shadow-lg shadow-blue-100 active:scale-[0.98] transition-transform disabled:opacity-50"
           >
             {saving ? "Saving..." : "Save Changes"}
