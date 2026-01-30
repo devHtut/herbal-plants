@@ -92,30 +92,30 @@ export default function About() {
           <h3 className="text-[13px] font-semibold text-gray-500 uppercase tracking-wide ml-1">Developer</h3>
           <div className="bg-white rounded-[20px] p-4 border border-gray-100 shadow-sm flex gap-4 items-center">
             {/* Column 1: Profile Pic */}
-            <div className="flex-shrink-0">
-              <img 
+            <div className="flex-shrink-0 space-y-2">
+              {/* <img 
                 src={profilePic} 
                 alt="Developer" 
                 className="w-20 h-20 rounded-full object-cover border-2 border-[#007AFF]/10"
-              />
+              /> */}
+              <div>
+                <h4 className="text-[17px] font-bold text-black">Htut Khaung</h4>
+                <p className="text-[13px] text-gray-500">HK Tech Solutions</p>
+              </div>
             </div>
             
             {/* Column 2: Info & Buttons */}
             <div className="flex-1 space-y-2">
-              <div>
-                <h4 className="text-[17px] font-bold text-black">Htut Khaung</h4>
-                <p className="text-[13px] text-gray-500">Full Stack</p>
-              </div>
               <div className="flex gap-2">
                 <a 
                   href="mailto:dev.htutkhaung@gmail.com"
-                  className="flex items-center gap-1.5 bg-[#F2F2F7] px-3 py-1.5 rounded-full text-[#007AFF] text-[13px] font-medium active:opacity-50 transition-opacity"
+                  className="flex items-center gap-1.5 bg-[#F2F2F7] px-5 py-1.5 rounded-full text-[#007AFF] text-[13px] font-medium active:opacity-50 transition-opacity"
                 >
                   <FiMail size={14} /> Email
                 </a>
                 <a 
                   href="tel:+959772364896"
-                  className="flex items-center gap-1.5 bg-[#F2F2F7] px-3 py-1.5 rounded-full text-[#34C759] text-[13px] font-medium active:opacity-50 transition-opacity"
+                  className="flex items-center gap-1.5 bg-[#F2F2F7] px-5 py-1.5 rounded-full text-[#34C759] text-[13px] font-medium active:opacity-50 transition-opacity"
                 >
                   <FiPhone size={14} /> Call
                 </a>

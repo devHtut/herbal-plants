@@ -35,10 +35,10 @@ export default function RequireContributor({ children }) {
   if (allowed === null) {
     return (
       <div className="h-screen bg-[#F2F2F7] flex items-center justify-center">
-        {/* <div className="text-center">
+        <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#007AFF] mx-auto mb-4"></div>
           <p className="text-gray-500 font-medium">Loading...</p>
-        </div> */}
+        </div>
       </div>
     );
   }

@@ -18,6 +18,9 @@ import ContributorSettings from "./pages/ContributorSetting";
 import SavedPlant from "./pages/SavedPlant";
 import Contributors from "./pages/Contributors";
 import AboutUs from "./pages/AboutUs";
+import VerifyOtp from "./pages/VerifyOtp";
+import ForgotPassword from "./pages/ForgotPassword";
+import UpdatePassword from "./pages/UpdatePassword";
 
 function AppContent({ plants, loading, setMenuOpen, user, onRefresh }) {
   const [isContributor, setIsContributor] = useState(false);
@@ -76,6 +79,9 @@ function AppContent({ plants, loading, setMenuOpen, user, onRefresh }) {
       <Route path="/saved" element={<SavedPlant />} />
       <Route path="/contributors" element={<Contributors />}></Route>
       <Route path="/about" element={<AboutUs />}></Route>
+      <Route path="/verify-otp" element={<VerifyOtp />}></Route>
+      <Route path="/forgot-password" element={<ForgotPassword />}></Route>
+      <Route path="/update-password" element={<UpdatePassword />}></Route>
 
       {/* Protected Contributor Routes */}
       <Route path="/add-plant-info" element={<RequireContributor><AddPlantInfo /></RequireContributor>} />
