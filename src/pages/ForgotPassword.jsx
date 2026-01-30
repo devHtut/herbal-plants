@@ -48,7 +48,7 @@ export default function ForgotPassword() {
           <IoPaperPlaneOutline className="text-[#007AFF] text-5xl" />
         </div>
 
-        <h1 className="text-[28px] font-bold text-black tracking-tight mb-2 text-center">Password ပြန်ညှိရန်</h1>
+        <h1 className="text-[28px] font-bold text-black tracking-tight mb-2 text-center">Password ပြန်သတ်မှတ်ရန်</h1>
         <p className="text-gray-500 text-[15px] mb-8 text-center px-4 leading-relaxed">
           သင့် Password ကို reset လုပ်နိုင်ရန် အတည်ပြုကုဒ် (OTP) ပို့ပေးမည် ဖြစ်သောကြောင့် အီးမေးလ်လိပ်စာ ထည့်ပေးပါ။
         </p>

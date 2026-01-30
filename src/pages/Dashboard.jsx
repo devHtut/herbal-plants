@@ -60,7 +60,7 @@ export default function Dashboard({ plants, loading, setMenuOpen, user, onRefres
     } else { setPullY(0); }
   };
 
-  if (!isProfileReady) return <div className="h-screen flex items-center justify-center">ခေတ္တစောင့်ပါ...</div>;
+  if (!isProfileReady) return <div className="h-screen flex items-center justify-center">ခဏစောင့်ပါ...</div>;
 
   return (
     <div className="relative h-screen bg-[#F2F2F7] flex flex-col font-sans">

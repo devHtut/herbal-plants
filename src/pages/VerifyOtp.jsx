@@ -7,7 +7,6 @@ export default function VerifyOtp() {
   const navigate = useNavigate();
   const { state } = useLocation();
   
-  // Email ကို ရှာပုံတော်ဖွင့်ခြင်း (State -> LocalStorage -> Empty)
   const [email, setEmail] = useState(state?.email || localStorage.getItem("pending_email") || "");
   const authType = state?.type || 'signup'; 
   
@@ -19,7 +18,6 @@ export default function VerifyOtp() {
   const [timer, setTimer] = useState(60);
 
   useEffect(() => {
-    // အကယ်၍ email ကို state ထဲမှာ တွေ့ရင် localStorage ထဲ ကူးသိမ်းထားပါ
     if (state?.email) {
       localStorage.setItem("pending_email", state.email);
     }
@@ -56,15 +54,16 @@ export default function VerifyOtp() {
     } else {
       setIsSuccess(true);
       setLoading(false);
-      localStorage.removeItem("pending_email"); // အောင်မြင်ရင် သိမ်းထားတာ ဖျက်ပါ
+      localStorage.removeItem("pending_email");
       
+      // Extended timer to 3000ms so users can read the Myanmar text
       setTimeout(() => {
         if (authType === 'recovery') {
           navigate("/update-password");
         } else {
           navigate("/login");
         }
-      }, 2000);
+      }, 3000);
     }
   };
 
@@ -97,8 +96,23 @@ export default function VerifyOtp() {
                 <FiCheckCircle className="text-[#34C759] text-6xl" />
               </div>
             </div>
-            <h2 className="text-2xl font-bold text-black">အောင်မြင်ပါသည်!</h2>
-            <p className="text-gray-500">ခဏအတွင်း ဆက်သွားပါမည်...</p>
+            
+            {/* Conditional Success Message */}
+            {authType === 'signup' ? (
+              <>
+                <h2 className="text-xl font-bold text-black leading-tight">
+                  Account ပြုလုပ်ခြင်း အောင်မြင်ပါသည်။
+                </h2>
+                <p className="text-gray-500 text-[15px]">
+                  ဤ email နှင့် password ကိုသုံးပြီး Login ဝင်ပေးပါ
+                </p>
+              </>
+            ) : (
+              <>
+                <h2 className="text-2xl font-bold text-black">အောင်မြင်ပါသည်!</h2>
+                <p className="text-gray-500">ခဏအတွင်း ဆက်သွားပါမည်...</p>
+              </>
+            )}
           </div>
         ) : (
           <>

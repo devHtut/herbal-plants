@@ -175,7 +175,7 @@ export default function ContributorProfile() {
               <IoSchoolOutline className="text-gray-300 mr-3" size={20} />
               <input
                 className="w-full py-4 focus:outline-none text-[17px] text-black"
-                placeholder="Academic / Title (eg. B.M.T.M)"
+                placeholder="Academic eg. B.M.T.M (Final Year)"
                 value={formData.academic}
                 onChange={(e) => setFormData({...formData, academic: e.target.value})}
               />

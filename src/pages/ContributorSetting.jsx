@@ -171,7 +171,7 @@ export default function ContributorSettings() {
             <div className="bg-white rounded-[14px] border border-gray-200 divide-y divide-gray-100 overflow-hidden">
               <div className="flex items-center px-4 py-3.5">
                 <IoSchoolOutline className="text-gray-300 mr-3" size={20} />
-                <input className="flex-1 focus:outline-none text-[16px]" placeholder="Academic Title (eg. B.M.T.M)" value={formData.academic} 
+                <input className="flex-1 focus:outline-none text-[16px]" placeholder="Academic eg. B.M.T.M (Final Year)" value={formData.academic} 
                   onChange={(e) => setFormData({...formData, academic: e.target.value})} />
               </div>
               <div className="flex items-center px-4 py-3.5">
