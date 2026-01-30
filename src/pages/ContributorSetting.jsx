@@ -103,7 +103,12 @@ export default function ContributorSettings() {
     }
   };
 
-  if (loading) return <div className="h-screen flex items-center justify-center bg-[#F2F2F7]"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#007AFF]"></div></div>;
+  if (loading) return <div className="h-screen bg-[#F2F2F7] flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#007AFF] mx-auto mb-4"></div>
+          <p className="text-gray-500 font-medium">Loading...</p>
+        </div>
+      </div>
 
   return (
     <div className="min-h-screen bg-[#F2F2F7] flex flex-col font-sans relative">

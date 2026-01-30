@@ -6,8 +6,8 @@ import {
   IoMailOutline,
   IoLockClosedOutline,
   IoShieldCheckmarkOutline,
-  IoEyeOutline,    // Show icon
-  IoEyeOffOutline, // Hide icon
+  IoEyeOutline,
+  IoEyeOffOutline,
 } from "react-icons/io5";
 import leafIcon from '../assets/Herbal_Icon.png';
 
@@ -17,7 +17,6 @@ export default function Signup() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   
-  // Show/Hide အတွက် state နှစ်ခု
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
@@ -34,6 +33,7 @@ export default function Signup() {
     e.preventDefault();
     setError("");
 
+    // 1. Client-side Validations
     if (!validateEmail(email)) {
       setError("Valid ဖြစ်တဲ့ email address ကိုသာထည့်ပေးပါ");
       return;
@@ -49,32 +49,48 @@ export default function Signup() {
 
     setLoading(true);
 
-    const { data, error: signupError } = await supabase.auth.signUp({
-      email: email.trim(),
-      password: password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/verify`,
-      },
-    });
+    try {
+      const { data, error: signupError } = await supabase.auth.signUp({
+        email: email.trim(),
+        password: password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/verify`,
+        },
+      });
 
-    if (signupError) {
-      if (signupError.message.includes("already registered")) {
-        setError("ဒီ email နဲ့ account တခုရှိပြီးသားပါ");
-      } else {
-        setError(signupError.message);
+      // 2. Handle Supabase Errors
+      if (signupError) {
+        // Handle Rate Limiting (Status 429)
+        if (signupError.status === 429 || signupError.message.toLowerCase().includes("rate limit")) {
+          setError("မိနစ်အနည်းငယ်အကြာမှ Sign up ပြန်လုပ်ပေးပါ");
+        } 
+        // Handle Already Registered
+        else if (signupError.message.includes("already registered") || signupError.status === 400) {
+          setError("ဒီ email နှင့် account ဖွင့်ပြီးသားဖြစ်ပါသဖြင့် Login ဝင်ပေးပါ");
+        } 
+        else {
+          setError(signupError.message);
+        }
+      } 
+      // 3. Handle Identity Conflicts (User already exists but Supabase returns success for security)
+      else if (data?.user?.identities?.length === 0) {
+        setError("ဒီ email နှင့် account ဖွင့်ပြီးသားဖြစ်ပါသဖြင့် Login ဝင်ပေးပါ");
+      } 
+      else {
+        // Success: Proceed to OTP
+        localStorage.setItem("pending_email", email.trim());
+        navigate("/verify-otp", { state: { email: email.trim() } });
       }
-    } else if (data?.user?.identities?.length === 0) {
-      setError("ဒီ email က account ရှိပြီးသားဖြစ်လို့ log in ဝင်ကြည့်ပါ");
-    } else {
-      localStorage.setItem("pending_email", email.trim());
-      navigate("/verify-otp", { state: { email: email.trim() } });
+    } catch (err) {
+      setError("တစ်ခုခုမှားယွင်းနေပါသည်။ ခဏအကြာမှ ထပ်မံကြိုးစားပေးပါ။");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   }
 
   return (
     <div className="min-h-screen bg-[#F2F2F7] flex flex-col font-sans">
+      {/* === NAV BAR === */}
       <div className="flex items-center px-4 py-3 bg-white/80 backdrop-blur-md sticky top-0 z-10 border-b border-gray-200">
         <button
           onClick={() => navigate(-1)}
@@ -107,9 +123,10 @@ export default function Signup() {
         </p>
 
         <form onSubmit={handleSignup} className="w-full max-w-sm space-y-6">
+          {/* Custom Animated Error Display */}
           {error && (
-            <div className="bg-red-50 border border-red-100 p-3 rounded-[12px] animate-pulse">
-              <p className="text-[#FF3B30] text-[13px] text-center font-medium">
+            <div className="bg-red-50 border border-red-100 p-3 rounded-[12px] animate-in fade-in slide-in-from-top-2 duration-300">
+              <p className="text-[#FF3B30] text-[13px] text-center font-medium leading-relaxed">
                 {error}
               </p>
             </div>
@@ -170,7 +187,7 @@ export default function Signup() {
           <button
             disabled={loading}
             className={`w-full py-3.5 rounded-[14px] font-bold text-[17px] transition-all shadow-sm
-              ${loading ? "bg-gray-300" : "bg-[#007AFF] text-white active:scale-[0.98] active:bg-[#0062CC]"}
+              ${loading ? "bg-gray-300 cursor-not-allowed" : "bg-[#007AFF] text-white active:scale-[0.98] active:bg-[#0062CC]"}
             `}
           >
             {loading ? "Creating Account..." : "Sign Up"}
