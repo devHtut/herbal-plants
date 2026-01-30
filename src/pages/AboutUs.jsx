@@ -1,4 +1,4 @@
-import React, { useState } from "react"; 
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiArrowLeft, FiMail, FiPhone } from "react-icons/fi"; // Added FiMail and FiPhone
 import {
@@ -7,8 +7,8 @@ import {
   IoChevronForward,
   IoChevronDown,
 } from "react-icons/io5";
-import leafIcon from '../assets/Herbal_Icon.png';
-import profilePic from '../assets/developer_profile.jpg'; // Added missing import
+import leafIcon from "../assets/Herbal_Icon.png";
+import profilePic from "../assets/developer_profile.jpg"; // Added missing import
 
 export default function About() {
   const navigate = useNavigate();
@@ -88,50 +88,52 @@ export default function About() {
         </div>
 
         {/* Developer Section (2 Columns) */}
-        <div className="space-y-1.5 px-1">
-          <h3 className="text-[13px] font-semibold text-gray-500 uppercase tracking-wide ml-1">Developer</h3>
-          <div className="bg-white rounded-[20px] p-4 border border-gray-100 shadow-sm flex gap-4 items-center">
-            {/* Column 1: Profile Pic */}
-            <div className="flex-shrink-0 space-y-2">
-              {/* <img 
-                src={profilePic} 
-                alt="Developer" 
-                className="w-20 h-20 rounded-full object-cover border-2 border-[#007AFF]/10"
-              /> */}
-              <div>
-                <h4 className="text-[17px] font-bold text-black">Htut Khaung</h4>
-                <p className="text-[13px] text-gray-500">HK Tech Solutions</p>
-              </div>
-            </div>
-            
-            {/* Column 2: Info & Buttons */}
-            <div className="flex-1 space-y-2">
-              <div className="flex gap-2">
-                <a 
-                  href="mailto:dev.htutkhaung@gmail.com"
-                  className="flex items-center gap-1.5 bg-[#F2F2F7] px-5 py-1.5 rounded-full text-[#007AFF] text-[13px] font-medium active:opacity-50 transition-opacity"
-                >
-                  <FiMail size={14} /> Email
-                </a>
-                <a 
-                  href="tel:+959772364896"
-                  className="flex items-center gap-1.5 bg-[#F2F2F7] px-5 py-1.5 rounded-full text-[#34C759] text-[13px] font-medium active:opacity-50 transition-opacity"
-                >
-                  <FiPhone size={14} /> Call
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
+        <div className="space-y-2 px-1">
+  <h3 className="text-[13px] font-semibold text-gray-500 uppercase tracking-wide ml-1">
+    Developer
+  </h3>
+  
+  <div className="bg-white rounded-[20px] p-3.5 border border-gray-100 shadow-sm flex items-center justify-between gap-2">
+    
+    {/* Left: Name & Brand */}
+    <div className="min-w-0 flex-shrink-1">
+      <h4 className="text-[15px] font-bold text-black truncate">Htut Khaung</h4>
+      <p className="text-[11px] text-gray-400 font-medium truncate">HK Tech Solutions</p>
+    </div>
+    
+    {/* Right: Buttons in a tight row */}
+    <div className="flex items-center gap-1.5 flex-shrink-0">
+      <a 
+        href="mailto:dev.htutkhaung@gmail.com"
+        className="flex items-center gap-1 bg-[#F2F2F7] px-3 py-2 rounded-full text-[#007AFF] text-[12px] font-bold active:bg-blue-50 transition-colors"
+      >
+        <FiMail size={14} /> 
+        <span>Email</span>
+      </a>
+      
+      <a 
+        href="tel:+959772364896"
+        className="flex items-center gap-1 bg-[#F2F2F7] px-3 py-2 rounded-full text-[#34C759] text-[12px] font-bold active:bg-green-50 transition-colors"
+      >
+        <FiPhone size={14} /> 
+        <span>Call</span>
+      </a>
+    </div>
+
+  </div>
+</div>
 
         {/* Legal Disclaimer */}
         <p className="text-[12px] text-gray-400 text-center px-1 pt-4">
-          ဤ Web-app တွင်ဖော်ပြထားသော အချက်အလက်များသည် ပညာပေးရည်ရွယ်ချက်အတွက်သာ ဖြစ်ပါသည်။ အပင်များကို ဆေးဘက်ဆိုင်ရာ ရည်ရွယ်ချက်ဖြင့် အသုံးပြုမည်ဆိုပါက သက်ဆိုင်ရာ ကျွမ်းကျင်ပညာရှင်များနှင့် အမြဲမပြတ် တိုင်ပင်ဆွေးနွေးမှုများ ပြုလုပ်ရန် လိုအပ်ပါသည်။
+          ဤ Web-app တွင်ဖော်ပြထားသော အချက်အလက်များသည် ပညာပေးရည်ရွယ်ချက်အတွက်သာ
+          ဖြစ်ပါသည်။ အပင်များကို ဆေးဘက်ဆိုင်ရာ ရည်ရွယ်ချက်ဖြင့်
+          အသုံးပြုမည်ဆိုပါက သက်ဆိုင်ရာ ကျွမ်းကျင်ပညာရှင်များနှင့် အမြဲမပြတ်
+          တိုင်ပင်ဆွေးနွေးမှုများ ပြုလုပ်ရန် လိုအပ်ပါသည်။
         </p>
 
         <p className="text-[12px] text-gray-400 text-center px-1">
-          The information provided in this web-app is for educational purposes only.
-          Always consult a professional before using plants for medicinal
+          The information provided in this web-app is for educational purposes
+          only. Always consult a professional before using plants for medicinal
           purposes.
         </p>
 
@@ -143,7 +145,14 @@ export default function About() {
   );
 }
 
-function AboutLink({ icon, label, content, isLast = false, onClick, isAction = false }) {
+function AboutLink({
+  icon,
+  label,
+  content,
+  isLast = false,
+  onClick,
+  isAction = false,
+}) {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleClick = () => {
@@ -164,12 +173,12 @@ function AboutLink({ icon, label, content, isLast = false, onClick, isAction = f
           <span className="text-xl">{icon}</span>
           <span className="text-[16px] text-black font-medium">{label}</span>
         </div>
-        
+
         {isAction ? (
           <IoChevronForward className="text-gray-300" />
         ) : (
-          <IoChevronDown 
-            className={`text-gray-300 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} 
+          <IoChevronDown
+            className={`text-gray-300 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
           />
         )}
       </div>
